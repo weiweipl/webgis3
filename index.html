@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+
+		<title>Travel</title>
+		<style>
+			html,
+			body,
+			#viewDiv {
+				padding: 0;
+				margin: 0;
+				height: 100%;
+				width: 100%;
+			}
+
+			#viewDiv1 {
+				width: 300px;
+				height: 150px;
+				margin-left: 20px;
+			}
+			
+			#cultural {
+	            top: 20px;
+	            right: 20px;
+	position: absolute;  //定位
+	z-index: 99;
+	background-color: white;
+	border-radius: 8px;
+	padding: 10px;
+	opacity: 0.75;
+	margin-top: 300px;
+	
+}
+
+#scenic {
+	top: 20px;
+	right: 20px;
+	position: absolute;
+	z-index: 99;
+	background-color: white;
+	border-radius: 8px;
+	padding: 10px;
+	opacity: 0.75;
+	margin-top: 350px;
+}
+
+#natural {
+	top: 20px;
+	right: 20px;
+	position: absolute;
+	z-index: 99;
+	background-color: white;
+	border-radius: 8px;
+	padding: 10px;
+	opacity: 0.75;
+	margin-top: 400px;
+}
+
+#person{
+	top: 20px;
+	right: 20px;
+	position: absolute;
+	z-index: 99;
+	background-color: white;
+	border-radius: 8px;
+	padding: 10px;
+	opacity: 0.75;
+	margin-top: 450px;
+}
+
+
+		</style>
+		<link rel="stylesheet" href="https://js.arcgis.com/4.11/esri/themes/light/main.css">
+		<script src="https://js.arcgis.com/4.11/"></script>
+		<script>
+			require([
+				"esri/Map",
+				"esri/views/MapView",
+				"esri/widgets/BasemapGallery",
+				"esri/widgets/Search",
+				"esri/layers/CSVLayer",
+				"esri/layers/GeoJSONLayer"
+				
+			], function(Map, MapView, BasemapGallery, Search, CSVLayer, GeoJSONLayer) {
+
+            var Renderer1 = {
+        type: "simple",
+        symbol: {
+          type: "picture-marker",
+          url: "http://static.arcgis.com/images/Symbols/NPS/npsPictograph_0231b.png",
+          width: "25px",
+          height: "25px"
+        }
+      }
+           
+		  var Renderer2 = {
+		    type: "simple",
+		    symbol: {
+		      type: "picture-marker",
+		      url: "https://weiweipl.github.io/webgis3/bingan.png",
+		      width: "25px",
+		      height: "25px"
+		    }
+		  }
+				
+				var Renderer3 = {
+				  type: "simple",
+				  symbol: {
+				    type: "picture-marker",
+				    url: "https://weiweipl.github.io/webgis3/xigua.png",
+				    width: "25px",
+				    height: "25px"
+				  }
+				}
+				
+            var Renderer4 = {
+              type: "simple",
+              symbol: {
+                type: "picture-marker",
+                url: "https://weiweipl.github.io/webgis3/tiantianquan.png",
+                width: "25px",
+                height: "25px"
+              }
+            }
+             
+				
+				var map = new Map({
+					basemap: "topo-vector"
+				});
+
+				var view = new MapView({
+					container: "viewDiv",
+					map: map,
+					center: [114.3259, 30.5749], // longitude, latitude
+					zoom: 4
+				});
+
+				
+
+				var basemapGallery = new BasemapGallery({
+					view: view,
+					container: "viewDiv1",
+					source: {
+						portal: {
+							url: "http://www.arcgis.com",
+							useVectorBasemaps: true, // Load vector tile basemap group
+						},
+					}
+				});
+				
+		 	
+			   
+
+				view.ui.add(basemapGallery, "top-right"); // Add to the view
+
+				var search = new Search({
+					view: view,
+
+				});
+				view.ui.add(search, "top-left"); // Add to the map
+
+				
+            //*** Add div element to show coordates ***//
+      var coordsWidget = document.createElement("div");
+      coordsWidget.id = "coordsWidget";
+      coordsWidget.className = "esri-widget esri-component";
+      coordsWidget.style.padding = "7px 15px 5px";
+      view.ui.add(coordsWidget, "bottom-right");
+
+      //*** Update lat, lon, zoom and scale ***//
+     function showCoordinates(pt) {
+        var coords = "Lat/Lon " + pt.latitude.toFixed(3) + " " + pt.longitude.toFixed(3) + 
+            " | Scale 1:" + Math.round(view.scale * 1) / 1 +
+            " | Zoom " + view.zoom;
+        coordsWidget.innerHTML = coords;
+      }
+      
+      //*** Add event and show center coordinates after the view is finished moving e.g. zoom, pan ***//
+    view.watch(["stationary"], function() {
+        showCoordinates(view.center);
+      });
+
+      //*** Add event to show mouse coordinates on click and move ***//
+     view.on(["pointer-down","pointer-move"], function(evt) {
+        showCoordinates(view.toMap({ x: evt.x, y: evt.y }));
+      });
+	  
+	  var url1 = "https://weiweipl.github.io/webgis3/ziran.csv"
+	  var url2 = "https://weiweipl.github.io/webgis3/cultural.csv"
+	  var url3 = "https://weiweipl.github.io/webgis3/fengjing.csv"
+	  var url4 = "https://weiweipl.github.io/webgis3/person.csv"	
+			  
+	    const layer1 = new CSVLayer({
+	  			   url: url1,
+	  			   renderer: Renderer1,
+	  			   
+	  			   popupTemplate:{
+	  				   
+	  				   title:"{name}",
+	  				   content:[{
+	  					   type:"text",
+	  					   text:"{description}",   
+	  				   },
+	  				   {
+	  					   type:"media",
+	  					   mediaInfos:[{
+	  						   type:"image",
+	  						   value:{
+	  							   sourceURL:"{picture}"
+	  						   },
+	  					   }]
+	  				   }
+	  				   ], 
+	  			   },
+				   visible: false
+	  			   });
+	  map.add(layer1); 
+	  
+	   const layer2 = new CSVLayer({
+	  			   url: url2,
+	  			   renderer: Renderer2,
+	  			   
+	  			   popupTemplate:{
+	  				   
+	  				   title:"{name}",
+	  				   content:[{
+	  					   type:"text",
+	  					   text:"{description}",   
+	  				   },
+	  				   {
+	  					   type:"media",
+	  					   mediaInfos:[{
+	  						   type:"image",
+	  						   value:{
+	  							   sourceURL:"{picture}"
+	  						   },
+	  					   }]
+	  				   }
+	  				   ], 
+	  			   },
+	  				   visible: false
+	  			   });
+	  map.add(layer2); 
+	  
+	  const layer3 = new CSVLayer({
+	  			   url: url3,
+	  			   renderer: Renderer3,
+	  			   
+	  			   popupTemplate:{
+	  				   
+	  				   title:"{name}",
+	  				   content:[{
+	  					   type:"text",
+	  					   text:"{description}",   
+	  				   },
+	  				   {
+	  					   type:"media",
+	  					   mediaInfos:[{
+	  						   type:"image",
+	  						   value:{
+	  							   sourceURL:"{picture}"
+	  						   },
+	  					   }]
+	  				   }
+	  				   ], 
+	  			   },
+	  				   visible: false
+	  			   });
+	  map.add(layer3); 
+	  
+	  const layer4 = new CSVLayer({
+	  			   url: url4,
+	  			   renderer: Renderer4,
+	  			   
+	  			   popupTemplate:{
+	  				   
+	  				   title:"{name}",
+	  				   content:[{
+	  					   type:"text",
+	  					   text:"{description}",   
+	  				   },
+					   {
+					   	  	type:"text",
+					   	  	text:"{time}",   
+					   },
+	  				   {
+	  					   type:"media",
+	  					   mediaInfos:[{
+	  						   type:"image",
+	  						   value:{
+	  							   sourceURL:"{picture}"
+	  						   },
+	  					   }]
+	  				   },
+	  				   ], 
+	  			   },
+	  				   visible: false
+	  			   });
+	  map.add(layer4); 
+	  
+	  const geoJSONLayer = new GeoJSONLayer({
+        url: "https://weiweipl.github.io/webgis3/New_Shapefile.json",
+        visible: false
+});
+
+map.add(geoJSONLayer);  
+	  
+	var layer1Toggle = document.getElementById("layer1");
+	var layer2Toggle = document.getElementById("layer2");
+	var layer3Toggle = document.getElementById("layer3");
+	var layer4Toggle = document.getElementById("layer4");
+
+	layer1Toggle.addEventListener("change", function() {
+		layer1.visible = layer1Toggle.checked;
+	});
+
+	layer2Toggle.addEventListener("change", function() {
+		layer2.visible = layer2Toggle.checked;
+	});
+
+	layer3Toggle.addEventListener("change", function() {
+		layer3.visible = layer3Toggle.checked;
+	});
+	
+	layer4Toggle.addEventListener("change", function() {
+		layer4.visible = layer4Toggle.checked;
+		geoJSONLayer.visible = layer4Toggle.checked;
+	});
+
+	  
+			});
+		</script>
+	</head>
+	<body>
+		<div id="viewDiv">
+			<span id="cultural">
+				<input type="checkbox" id="layer1">文化古迹
+			</span>
+
+			<span id="scenic">
+				<input type="checkbox" id="layer2">风景名胜
+			</span>
+
+			<span id="natural">
+				<input type="checkbox" id="layer3">自然风光
+			</span>
+			
+			<span id="person">
+				<input type="checkbox" id="layer4">人生旅程
+			</span>
+		</div>
+		<div id="viewDiv1">
+			
+		</div>
+		<div id="viewDiv2">
+
+		</div>
+
+
+
+	</body>
+</html>
